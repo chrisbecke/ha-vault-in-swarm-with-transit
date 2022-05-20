@@ -8,6 +8,8 @@ For the best results, this needs to be run on a docker swarm that has traefik, a
 
 Plug your wildcard dns DOMAIN into `.env` to replace `example.com`.
 
+This sample also assumes the existence of a docker volume plugin that provides cluster volumes. On my swarm, "glusterfs" is available, and each vault replica uses a named volume `'{{index .Service.Labels "com.docker.stack.namespace"}}_vault-{{.Task.Slot}}'`. This will need to be adjusted for however your own swarm handles clustered persistent volumes.
+
 ## Setup the transit vault
 
 The transit vault is not intended as a production ready configuration example. It merely provides a minimal vault that can host the `transit` secrets engine. In a real setup this would be a different highly available vault entirely and would not sit in the same stack.
