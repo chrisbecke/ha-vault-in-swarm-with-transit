@@ -51,7 +51,7 @@ vault-shell:
 
 clean:
 	@$(DOCKER) stack rm $(STACK)
-	@$(DOCKER) volume rm $(STACK)_vault
+	@$(DOCKER) volume rm $(STACK)_transit
 	@$(DOCKER) volume rm $(STACK)_vault-1
 	@$(DOCKER) volume rm $(STACK)_vault-2
 	@$(DOCKER) volume rm $(STACK)_vault-3
