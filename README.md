@@ -2,11 +2,15 @@
 
 A repo containing an example of Hashicorp vault on Docker Swarm using integrated raft storage, and autounseal via transit.
 
-## Docker Swarm Setup
+## Environment
 
-For the best results, this needs to be run on a docker swarm that has traefik, and wildcard dns.
+I do the bulk of my scripting in gnu make because its widely available.
 
-Plug your wildcard dns DOMAIN into `.env` to replace `example.com`.
+I assume the existence of a docker swarm with worker nodes.
+
+I assume Traefik is used on the swarm for ingress routing, and that there is a wildcard DNS pointing to the swarm. Plug your wildcard dns DOMAIN into `.env` to replace `example.com`.
+
+I also assume the existence of a docker volume plugin that provides cluster volumes. On my swarm, "glusterfs" is available, and each vault replica uses a named volume `'{{index .Service.Labels "com.docker.stack.namespace"}}_vault-{{.Task.Slot}}'`. This will need to be adjusted for however your own swarm handles clustered persistent volumes.
 
 ## Setup the transit vault
 
