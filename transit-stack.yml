@@ -1,0 +1,51 @@
+version: "3.9"
+
+volumes:
+  transit:
+    driver: glusterfs
+
+
+networks:
+  vault:
+  traefik:
+    external: true
+
+services:
+
+  transit:
+    image: vault:latest
+    command: server
+    networks:
+      vault:
+        aliases: ["transit.vault"]
+    volumes:
+    - /vault/logs
+    - transit:/vault/file
+    environment:
+      SKIP_SETCAP: "true"
+      VAULT_ADDR: http://localhost:8200
+      VAULT_LOCAL_CONFIG: >
+        {
+          "storage": { "file": { "path": "/vault/file" } },
+          "ui": true,
+          "listener": { 
+            "tcp": {
+              "address": "0.0.0.0:8200",
+              "tls_disable": true
+            }
+          },
+          "disable_mlock": true
+        }
+
+  transit-proxy:
+    image: caddy
+    command: caddy reverse-proxy --from :5000 --to transit.vault:8200
+    networks:
+    - vault
+    - traefik
+    deploy:
+      endpoint_mode: dnsrr
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.${STACK}_transit.rule=Host("transit.${STACK}.${DOMAIN}")
+        - traefik.http.services.${STACK}_transit.loadbalancer.server.port=5000

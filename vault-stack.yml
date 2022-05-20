@@ -1,0 +1,82 @@
+version: "3.9"
+
+networks:
+  vault:
+  traefik:
+    external: true
+
+volumes:
+  vault:
+    driver: glusterfs
+    name: '{{index .Service.Labels "com.docker.stack.namespace"}}_vault-{{.Task.Slot}}'
+
+services:
+
+  vault:
+    image: vault:latest
+    hostname: vault{{.Task.Slot}}
+    cap_add:
+      - IPC_LOCK
+    command: server
+    volumes:
+    - /vault/logs
+    - vault:/vault/file
+    environment:
+      SKIP_SETCAP: "true"
+      VAULT_ADDR: http://localhost:8200
+      VAULT_LOCAL_CONFIG: >
+        {
+            "cluster_name": "${STACK}",
+            "api_addr": "http://vault{{.Task.Slot}}:8200",
+            "ui": true,
+            "storage": {
+              "raft": { 
+                "path": "/vault/file",
+                "node_id": "node{{.Task.Slot}}",
+                "retry_join": {
+                  "leader_api_addr": "http://vault1:8200"
+                }
+              }
+            },
+            "cluster_addr": "http://vault{{.Task.Slot}}:8201",
+            "seal" : {
+              "transit" : {
+                "address": "http://transit:8200",
+                "token": "${TRANSIT_TOKEN}",
+                "key_name": "autounseal",
+                "mount_path": "transit/"
+              }
+            },
+            "listener": {
+                "tcp": {
+                    "address": "0.0.0.0:8200",
+                    "cluster_address": "0.0.0.0:8201",
+                    "tls_disable": true
+                }
+            },
+            "disable_mlock": true
+        }
+    networks:
+      vault:
+        aliases: [ vault.vault ]
+    deploy:
+      replicas: ${VAULT_REPLICAS-3}
+      placement:
+        constraints:
+          - node.role==worker
+      restart_policy:
+        max_attempts: 1
+
+  vault-proxy:
+    image: caddy
+    command: caddy reverse-proxy --from :5000 --to vault.vault:8200
+    networks:
+    - vault
+    - traefik
+    deploy:
+      endpoint_mode: dnsrr
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.${STACK}_vault.rule=Host("vault.${STACK}.${DOMAIN}")
+        - traefik.http.services.${STACK}_vault.loadbalancer.server.port=5000
+        - service.name={{.Service.Name}}
