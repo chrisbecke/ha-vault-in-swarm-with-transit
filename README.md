@@ -2,11 +2,11 @@
 
 A repo containing an example of Hashicorp vault on Docker Swarm using integrated raft storage, and autounseal via transit.
 
-## Environment
+## Environment Setup
 
 I do the bulk of my scripting in gnu make because its widely available.
 
-I assume the existence of a docker swarm with worker nodes.
+I assume the existence of a docker swarm with worker nodes. I expect that there remote access to the swarm via the default docker context, and the helper functions that open shells into the transit and vault instances assume that there are preconfigured contexts for each swarm node.
 
 I assume Traefik is used on the swarm for ingress routing, and that there is a wildcard DNS pointing to the swarm. Plug your wildcard dns DOMAIN into `.env` to replace `example.com`.
 
