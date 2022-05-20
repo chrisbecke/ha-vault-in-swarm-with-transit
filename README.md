@@ -4,13 +4,15 @@ A repo containing an example of Hashicorp vault on Docker Swarm using integrated
 
 ## Environment Setup
 
-I do the bulk of my scripting in gnu make because its widely available.
+A couple of things are going to need to be setup for this sample to actually run out the box.
 
-I assume the existence of a docker swarm with worker nodes. I expect that there remote access to the swarm via the default docker context, and the helper functions that open shells into the transit and vault instances assume that there are preconfigured contexts for each swarm node.
+I do the bulk of my scripting in gnu make because its widely available. On linux and MacOS systems. On Windows You might need to install gnu make in WSL2.
 
-I assume Traefik is used on the swarm for ingress routing, and that there is a wildcard DNS pointing to the swarm. Plug your wildcard dns DOMAIN into `.env` to replace `example.com`.
+There must be a docker swarm. The Box being used to deploy must be a manager, or a Docker Desktop with the default docker context pointing to a swarm manager. Addtionally the helper functions that open shells into the transit and vault instances assume that there are preconfigured contexts for each swarm node.
 
 I also assume the existence of a docker volume plugin that provides cluster volumes. On my swarm, "glusterfs" is available, and each vault replica uses a named volume `'{{index .Service.Labels "com.docker.stack.namespace"}}_vault-{{.Task.Slot}}'`. This will need to be adjusted for however your own swarm handles clustered persistent volumes.
+
+I assume Traefik is used on the swarm for ingress routing, and that there is a wildcard DNS pointing to the swarm. Plug your wildcard dns DOMAIN into `.env` to replace `example.com`. Using the vault GUI is not an imporant part of this demo, so fixing this is optional.
 
 ## Setup the transit vault
 
@@ -96,3 +98,7 @@ vault operator raft list-peers
 
 You can now verify the HA status of this cluster by using docker commands to kill the vault1..3 tasks and verifying the vault cluster recovers when there is a quorum of nodes available.
 
+## Additional notes.
+
+Using `caddy` to offload the Traefik connections from vault might add an extra hop but is an important design choice. Vault rejects listening on 0.0.0.0 if that represents more than one network interface, the alternative is to provide a `VAULT_CLUSTER_INTERFACE: eth0`. This in turn overrides more than the listen address, but also `cluster_addr` and means that the cluster and raft both snapshot the container IPs at a point in time - Any task restarts will pick new IPs and the vault cluster will fail.
+Using `caddy` means there is only a single network attached to vault and solves this complication.
