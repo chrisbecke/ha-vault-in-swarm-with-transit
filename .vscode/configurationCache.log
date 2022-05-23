@@ -1,0 +1,1 @@
+{"buildTargets":["clean","exec","ps","shell","transit","transit-shell","vault","vault-shell"],"launchTargets":[],"customConfigurationProvider":{"workspaceBrowse":{"browsePath":[],"compilerArgs":[]},"fileIndex":[]}}

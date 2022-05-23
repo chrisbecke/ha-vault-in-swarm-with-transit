@@ -1,0 +1,6 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/chrisb/Projects/github/chrisb/ha-vault-in-swarm-with-transit'
+DOMAIN=example.com STACK=ha-vault-in-swarm-with-transit TRANSIT_TOKEN= docker stack deploy --compose-file transit-stack.yml ha-vault-in-swarm-with-transit
+open http://transit.ha-vault-in-swarm-with-transit.example.com
+make: Leaving directory `/Users/chrisb/Projects/github/chrisb/ha-vault-in-swarm-with-transit'
+ 

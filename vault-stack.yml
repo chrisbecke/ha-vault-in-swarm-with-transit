@@ -79,4 +79,3 @@ services:
         - traefik.enable=true
         - traefik.http.routers.${STACK}_vault.rule=Host("vault.${STACK}.${DOMAIN}")
         - traefik.http.services.${STACK}_vault.loadbalancer.server.port=5000
-        - service.name={{.Service.Name}}
